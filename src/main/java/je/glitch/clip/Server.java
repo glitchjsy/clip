@@ -47,11 +47,11 @@ public class Server {
             servlet.fileRenderer(new JavalinFreemarker());
             servlet.jsonMapper(gsonMapper);
 
-            servlet.bundledPlugins.enableCors(cors -> {
-                cors.addRule(it -> {
-                    it.anyHost();
-                });
-            });
+//            servlet.bundledPlugins.enableCors(cors -> {
+//                cors.addRule(it -> {
+//                    it.anyHost();
+//                });
+//            });
         }).start(8038);
 
         app.get("/health", ctx -> ctx.result("OK"));

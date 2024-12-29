@@ -37,6 +37,11 @@ export const App = () => {
                 sessionStorage.setItem("clip-items", JSON.stringify(data));
 
                 setItems(data);
+            } else {
+                if (response.status === 404) {
+                    onChange();
+                    return toast("The session has been deleted", { type: "error" });
+                }
             }
         } catch (e: any) {
             if (shouldAlert) {
