@@ -5,7 +5,7 @@ import CryptoJS from "crypto-js";
 import theme from "./theme";
 import { EncryptKeyModal } from "./components/EncryptKeyModal";
 
-const API_URL = "http://localhost:8038/api";
+const API_URL = "/api";
 const SESSION_ID_LENGTH = 6;
 
 export const App = () => {
@@ -143,7 +143,7 @@ const HowItWorks = () => {
         <Box textAlign="center">
             <Text fontSize="18" fontWeight="bold">How It Works</Text>
             <Text color="rgb(107,114,128)" marginBottom="4">
-                Open up this page on two devices (or two tabs if you're testing!). On one page, click <strong>Create Session</strong>. On another page, enter
+                Open up this page on two devices (or two tabs if you"re testing!). On one page, click <strong>Create Session</strong>. On another page, enter
                 the <strong>Session ID</strong> and click <strong>Join</strong>. Type in the box, hit enter, and watch it appear on the other page!
             </Text>
             <Text color="rgb(107,114,128)" marginBottom="4">
@@ -262,36 +262,48 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                 marginTop="5"
                 marginBottom="20"
             >
-                {items.map((item: any) => {
-                    let finalText;
-                    
-                    try {
-                        if (item.encrypted) {
-                            finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
-                        }
-                    } catch (e: any) {
-                        finalText = item.text;
-                    }
+                {items
+                    .sort((a: any, b: any) => b.creationDate - a.creationDate)
+                    .map((item: any) => {
+                        let finalText = item.text;
 
-                    return (
-                        <Flex
-                            key={item.id}
-                            bgColor="white"
-                            paddingX="4"
-                            paddingY="2"
-                            justifyContent="space-between"
-                        >
-                            <Box>
-                                {(item.encrypted && !encryptionKey) ? <Text color="red" fontSize="14">This item is encrypted. Please tick encryption above and enter the key view.</Text> : <Text>{finalText}</Text>}
-                                <Flex>
-                                    <Text color="muted" fontSize="14">{item.creationDate}</Text>
-                                    {item.encrypted && <Text color="green" fontSize="14" marginLeft="4">Encrypted</Text>}
-                                </Flex>
-                            </Box>
-                            <CloseButton onClick={() => deleteItem(item.id)} />
-                        </Flex >
-                    )
-                })}
+                        try {
+                            if (item.encrypted) {
+                                finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
+                            }
+                        } catch (e: any) {
+                            finalText = item.text;
+                        }
+
+                        const creationDate = new Date(item.creationDate).toLocaleString("en-GB", {
+                            year: "numeric",
+                            month: "short",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            hour12: true,
+                        });
+
+                        return (
+                            <Flex
+                                key={item.id}
+                                bgColor="white"
+                                paddingX="4"
+                                paddingY="2"
+                                justifyContent="space-between"
+                            >
+                                <Box>
+                                    {(item.encrypted && !encryptionKey) ? <Text color="red" fontSize="14">This item is encrypted. Please tick encryption above and enter the key view.</Text> : <Text>{finalText}</Text>}
+                                    <Flex>
+                                        <Text color="muted" fontSize="14">{creationDate}</Text>
+                                        {item.encrypted && <Text color="green" fontSize="14" marginLeft="4">Encrypted</Text>}
+                                    </Flex>
+                                </Box>
+                                <CloseButton onClick={() => deleteItem(item.id)} />
+                            </Flex >
+                        )
+                    })}
             </Flex >
 
             <EncryptKeyModal

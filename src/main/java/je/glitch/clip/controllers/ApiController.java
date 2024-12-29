@@ -48,7 +48,7 @@ public class ApiController {
         String code = ctx.pathParam("code");
         AddClipItemModel body = ctx.bodyAsClass(AddClipItemModel.class);
 
-        ClipItem item = new ClipItem(UUID.randomUUID(), body.getText(), body.isEncrypted(), new Date());
+        ClipItem item = new ClipItem(UUID.randomUUID(), body.getText(), body.isEncrypted(), new Date().getTime());
         clipCache.addItem(code, item);
 
         ctx.json(item);
