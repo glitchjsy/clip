@@ -149,7 +149,7 @@ const HowItWorks = () => {
                 it will remove you from it.
             </Text>
             <Text color="rgb(107,114,128)" fontWeight="bold">
-                NOTE: Sessions expire automatically after 1 hour of inactivity
+                NOTE: Sessions expire automatically after 10 minutes of inactivity
             </Text>
         </Box>
     )
@@ -246,10 +246,14 @@ const CreateSection = ({ onJoin }: any) => {
             if (response.ok) {
                 const data = await response.json();
 
-                sessionStorage.setItem("clip-session-id", data.code);
+                if (!data?.code) {
+                    return toast("Received invalid response while creating session", { type: "error" });
+                }
+
+                sessionStorage.setItem("clip-session-id", data.code.toUpperCase());
                 sessionStorage.setItem("clip-items", "[]");
 
-                onJoin(data.code);
+                onJoin(data.code.toUpperCase());
             }
         } catch (e: any) {
             toast("Failed to create session", { type: "error" });

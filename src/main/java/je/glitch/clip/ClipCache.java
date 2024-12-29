@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ClipCache {
     private final Cache<String, List<ClipItem>> cache = CacheBuilder.newBuilder()
-            .expireAfterAccess(60, TimeUnit.MINUTES)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
 
     public void addSession(String code) {

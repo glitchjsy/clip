@@ -11,4 +11,4 @@ Effortlessly copy & paste between devices.
 > You can delete invidual items or delete the entire session itself. Please note that clicking Change session will not delete the session, it will remove you from it.
 
 > [!NOTE]
-> Sessions expire automatically after 1 hour of inactivity
+> Sessions expire automatically after 10 minutes of inactivity
