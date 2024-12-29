@@ -1,0 +1,8 @@
+{
+  "short_name": "Clip",
+  "name": "Clip - Copy & Paste",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
