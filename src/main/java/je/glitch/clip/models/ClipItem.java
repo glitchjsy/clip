@@ -9,5 +9,6 @@ import java.util.UUID;
 public class ClipItem {
     private final UUID id;
     private final String text;
+    private final boolean encrypted;
     private final Date creationDate;
 }

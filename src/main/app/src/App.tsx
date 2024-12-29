@@ -1,9 +1,11 @@
-import { Box, Button, ChakraProvider, CloseButton, Container, Flex, Heading, Input, Text, Textarea } from "@chakra-ui/react";
+import { Box, Button, ChakraProvider, CloseButton, Container, Flex, Heading, Input, Modal, Switch, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import CryptoJS from "crypto-js";
 import theme from "./theme";
+import { EncryptKeyModal } from "./components/EncryptKeyModal";
 
-const API_URL = "/api";
+const API_URL = "http://localhost:8038/api";
 const SESSION_ID_LENGTH = 6;
 
 export const App = () => {
@@ -141,7 +143,7 @@ const HowItWorks = () => {
         <Box textAlign="center">
             <Text fontSize="18" fontWeight="bold">How It Works</Text>
             <Text color="rgb(107,114,128)" marginBottom="4">
-                Open up this page on two devices (or two tabs if you're testing!). On one page, click <strong>Create Session</strong>. On another page, enter 
+                Open up this page on two devices (or two tabs if you're testing!). On one page, click <strong>Create Session</strong>. On another page, enter
                 the <strong>Session ID</strong> and click <strong>Join</strong>. Type in the box, hit enter, and watch it appear on the other page!
             </Text>
             <Text color="rgb(107,114,128)" marginBottom="4">
@@ -157,13 +159,27 @@ const HowItWorks = () => {
 
 const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
     const [text, setText] = useState("");
+    const [encrypted, setEncrypted] = useState(false);
+    const [encryptionKey, setEncryptionKey] = useState("");
+
+    const { isOpen: isEncryptKeyModalOpen, onClose: onEncryptKeyModalClose, onOpen: onEncryptKeyModalOpen } = useDisclosure();
+
+    useEffect(() => {
+        const key = sessionStorage.getItem("clip-encryption-key");
+
+        if (key !== undefined && key !== null) {
+            setEncrypted(true);
+            setEncryptionKey(key);
+        }
+    }, []);
 
     const addText = async () => {
         try {
+            const finalText = encrypted ? CryptoJS.AES.encrypt(text, encryptionKey).toString() : text;
             const response = await fetch(`${API_URL}/session/${code}/items`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text })
+                body: JSON.stringify({ text: finalText, encrypted })
             });
 
             if (response.ok) {
@@ -171,6 +187,7 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                 onAddItem(data);
             }
         } catch (e: any) {
+            console.error(e);
             toast("Failed to add item", { type: "error" });
         }
     }
@@ -183,8 +200,26 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                 onDeleteItem(itemId);
             }
         } catch (e: any) {
+            console.error(e);
             toast("Failed to delete item", { type: "error" });
         }
+    }
+
+    const onEncryptToggle = (e: any) => {
+        if (encrypted && items.length !== 0) {
+            return toast("You can't change encryption key for this session unless all items are deleted", { type: "error" });
+        }
+        if (e.target.checked) {
+            onEncryptKeyModalOpen();
+        } else {
+            clearEncryption();
+        }
+    }
+
+    const clearEncryption = () => {
+        setEncrypted(false);
+        setEncryptionKey("");
+        sessionStorage.removeItem("clip-encryption-key");
     }
 
     return (
@@ -201,14 +236,25 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                     }
                 }}
             />
-            <Button
-                colorScheme="facebook"
-                height="8"
-                isDisabled={text.length === 0}
-                onClick={addText}
-            >
-                Add Text
-            </Button>
+            <Flex alignItems="center">
+                <Button
+                    colorScheme="facebook"
+                    height="8"
+                    isDisabled={text.length === 0}
+                    onClick={addText}
+                >
+                    Add Text
+                </Button>
+
+                <Switch
+                    colorScheme="facebook"
+                    isChecked={encrypted}
+                    onChange={onEncryptToggle}
+                    marginLeft="4"
+                >
+                    Encrypted
+                </Switch>
+            </Flex>
 
             <Flex
                 flexDirection="column"
@@ -216,23 +262,54 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                 marginTop="5"
                 marginBottom="20"
             >
-                {items.map((item: any) => (
-                    <Flex
-                        key={item.id}
-                        bgColor="white"
-                        paddingX="4"
-                        paddingY="2"
-                        justifyContent="space-between"
-                    >
-                        <Box>
-                            <Text>{item.text}</Text>
-                            <Text color="muted" fontSize="14">{item.creationDate}</Text>
-                        </Box>
-                        <CloseButton onClick={() => deleteItem(item.id)} />
-                    </Flex>
-                ))}
-            </Flex>
-        </Box>
+                {items.map((item: any) => {
+                    let finalText;
+                    
+                    try {
+                        if (item.encrypted) {
+                            finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
+                        }
+                    } catch (e: any) {
+                        finalText = item.text;
+                    }
+
+                    return (
+                        <Flex
+                            key={item.id}
+                            bgColor="white"
+                            paddingX="4"
+                            paddingY="2"
+                            justifyContent="space-between"
+                        >
+                            <Box>
+                                {(item.encrypted && !encryptionKey) ? <Text color="red" fontSize="14">This item is encrypted. Please tick encryption above and enter the key view.</Text> : <Text>{finalText}</Text>}
+                                <Flex>
+                                    <Text color="muted" fontSize="14">{item.creationDate}</Text>
+                                    {item.encrypted && <Text color="green" fontSize="14" marginLeft="4">Encrypted</Text>}
+                                </Flex>
+                            </Box>
+                            <CloseButton onClick={() => deleteItem(item.id)} />
+                        </Flex >
+                    )
+                })}
+            </Flex >
+
+            <EncryptKeyModal
+                isOpen={isEncryptKeyModalOpen}
+                onCancel={onEncryptKeyModalClose}
+                items={items}
+                onConfirm={(key: string) => {
+                    onEncryptKeyModalClose();
+
+                    if (key === null || key === undefined) {
+                        clearEncryption();
+                    } else {
+                        setEncrypted(true);
+                        setEncryptionKey(key);
+                    }
+                }}
+            />
+        </Box >
     )
 }
 
