@@ -34,10 +34,10 @@ export const GlitchNavbar = () => {
                     <NavItem href="https://data.glitch.je" isActive={false}>
                         Open Data
                     </NavItem>
-                    <NavItem href="https://qrcode.glitch.je" isActive={true}>
+                    <NavItem href="https://qrcode.glitch.je" isActive={false}>
                         QR Code
                     </NavItem>
-                    <NavItem href="https://clip.glitch.je" isActive={false}>
+                    <NavItem href="https://clip.glitch.je" isActive={true}>
                         Clip
                     </NavItem>
                 </Flex>
