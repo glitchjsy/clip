@@ -10,6 +10,8 @@ const SESSION_ID_LENGTH = 6;
 
 export const App = () => {
     const [code, setCode] = useState("");
+    const [encrypted, setEncrypted] = useState(false);
+    const [encryptionKey, setEncryptionKey] = useState("");
     const [items, setItems] = useState<any[]>([]);
 
     useEffect(() => {
@@ -27,6 +29,14 @@ export const App = () => {
             return () => clearInterval(id);
         }
     }, [code]);
+
+    useEffect(() => {
+        const key = sessionStorage.getItem("clip-encryption-key");
+
+        if (key !== undefined && key !== null) {
+            onEncrypt(key);
+        }
+    }, []);
 
     const fetchSession = async (code: string, shouldAlert: boolean = true) => {
         try {
@@ -92,6 +102,17 @@ export const App = () => {
         sessionStorage.setItem("clip-items", JSON.stringify(newItems));
     }
 
+    const clearEncryption = () => {
+        setEncrypted(false);
+        setEncryptionKey("");
+        sessionStorage.removeItem("clip-encryption-key");
+    }
+
+    const onEncrypt = (key: string) => {
+        setEncrypted(true);
+        setEncryptionKey(key);
+    }
+
     return (
         <ChakraProvider theme={theme}>
             <Box paddingX="2">
@@ -126,7 +147,17 @@ export const App = () => {
                 </Flex>
 
                 <Container maxWidth={{ base: "100%", md: "50%" }}>
-                    {code && <MainSection code={code} items={items} onAddItem={onAddItem} onDeleteItem={onDeleteItem} />}
+                    {code && (
+                        <MainSection
+                            code={code}
+                            items={items}
+                            encrypted={encrypted}
+                            encryptionKey={encryptionKey}
+                            onEncrypt={onEncrypt}
+                            onAddItem={onAddItem}
+                            onDeleteItem={onDeleteItem}
+                        />
+                    )}
                 </Container>
                 <Container maxWidth={{ base: "100%", md: "70%" }}>
                     {!code && <HowItWorks />}
@@ -157,21 +188,10 @@ const HowItWorks = () => {
     )
 }
 
-const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
+const MainSection = ({ code, items, encrypted, encryptionKey, clearEncryption, onEncrypt, onAddItem, onDeleteItem }: any) => {
     const [text, setText] = useState("");
-    const [encrypted, setEncrypted] = useState(false);
-    const [encryptionKey, setEncryptionKey] = useState("");
 
     const { isOpen: isEncryptKeyModalOpen, onClose: onEncryptKeyModalClose, onOpen: onEncryptKeyModalOpen } = useDisclosure();
-
-    useEffect(() => {
-        const key = sessionStorage.getItem("clip-encryption-key");
-
-        if (key !== undefined && key !== null) {
-            setEncrypted(true);
-            setEncryptionKey(key);
-        }
-    }, []);
 
     const addText = async () => {
         try {
@@ -214,12 +234,6 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
         } else {
             clearEncryption();
         }
-    }
-
-    const clearEncryption = () => {
-        setEncrypted(false);
-        setEncryptionKey("");
-        sessionStorage.removeItem("clip-encryption-key");
     }
 
     return (
@@ -266,10 +280,21 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                     .sort((a: any, b: any) => b.creationDate - a.creationDate)
                     .map((item: any) => {
                         let finalText = item.text;
+                        let textColor = "black";
 
                         try {
                             if (item.encrypted) {
-                                finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
+                                if (!encryptionKey) {
+                                    finalText = "This item is encrypted. Please tick encryption above and enter the key view.";
+                                    textColor = "red";
+                                } else {
+                                    finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
+
+                                    if (finalText.trim() === "") {
+                                        finalText = "The encryption key used for this item is different, this shouldn't usually happen. Please remove all items and set a new encryption key.";
+                                        textColor = "#c47206";
+                                    }
+                                }
                             }
                         } catch (e: any) {
                             finalText = item.text;
@@ -294,7 +319,7 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                                 justifyContent="space-between"
                             >
                                 <Box>
-                                    {(item.encrypted && !encryptionKey) ? <Text color="red" fontSize="14">This item is encrypted. Please tick encryption above and enter the key view.</Text> : <Text>{finalText}</Text>}
+                                    <Text color={textColor} fontSize="14">{finalText}</Text>
                                     <Flex>
                                         <Text color="muted" fontSize="14">{creationDate}</Text>
                                         {item.encrypted && <Text color="green" fontSize="14" marginLeft="4">Encrypted</Text>}
@@ -316,8 +341,7 @@ const MainSection = ({ code, items, onAddItem, onDeleteItem }: any) => {
                     if (key === null || key === undefined) {
                         clearEncryption();
                     } else {
-                        setEncrypted(true);
-                        setEncryptionKey(key);
+                        onEncrypt(key);
                     }
                 }}
             />
