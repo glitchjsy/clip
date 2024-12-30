@@ -83,6 +83,7 @@ export const App = () => {
 
     const onChange = () => {
         setCode("");
+        clearEncryption();
         sessionStorage.clear();
     }
 
