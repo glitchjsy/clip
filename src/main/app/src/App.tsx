@@ -64,6 +64,7 @@ export const App = () => {
 
     const onJoin = (code: string) => {
         setCode(code);
+        clearEncryption();
         fetchSession(code);
     }
 
@@ -73,6 +74,7 @@ export const App = () => {
 
             if (response.ok) {
                 sessionStorage.clear();
+                clearEncryption();
                 setCode("");
                 setItems([]);
             }
