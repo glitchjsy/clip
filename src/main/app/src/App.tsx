@@ -285,7 +285,7 @@ const MainSection = ({ code, items, encrypted, encryptionKey, clearEncryption, o
                         try {
                             if (item.encrypted) {
                                 if (!encryptionKey) {
-                                    finalText = "This item is encrypted. Please tick encryption above and enter the key view.";
+                                    finalText = "This item is encrypted. Please tick encryption above and enter the key to view.";
                                     textColor = "red";
                                 } else {
                                     finalText = CryptoJS.AES.decrypt(item.text, encryptionKey).toString(CryptoJS.enc.Utf8);
