@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import CryptoJS from "crypto-js";
 import theme from "./theme";
 import { EncryptKeyModal } from "./components/EncryptKeyModal";
+import { GlitchNavbar } from "./components/GlitchNavbar";
 
 const API_URL = "/api";
 const SESSION_ID_LENGTH = 6;
@@ -118,54 +119,79 @@ export const App = () => {
 
     return (
         <ChakraProvider theme={theme}>
-            <Box paddingX="2">
-                <Flex
-                    height="250px"
-                    flexDirection="column"
-                    alignItems="center"
-                    textAlign="center"
-                    paddingTop="100px"
+            <Flex
+                flexDirection="column"
+                justifyContent="space-between"
+                height="100%"
+            >
+                <Box
+                    paddingX="2"
+                    paddingBottom="8"
                 >
-                    <Heading
-                        fontSize="60px"
-                        fontWeight="800"
-                        marginBottom="10px"
+                    <Flex
+                        height="250px"
+                        flexDirection="column"
+                        alignItems="center"
+                        textAlign="center"
+                        paddingTop="100px"
                     >
-                        Clip
-                    </Heading>
+                        <Heading
+                            fontSize="60px"
+                            fontWeight="800"
+                            marginBottom="10px"
+                        >
+                            Clip
+                        </Heading>
 
-                    <Text
-                        color="rgb(107,114,128)"
-                        fontSize="20px"
+                        <Text
+                            color="rgb(107,114,128)"
+                            fontSize="20px"
+                        >
+                            Effortlessly copy & paste between devices
+                        </Text>
+                    </Flex>
+
+                    <Flex
+                        marginBottom="8"
+                        justifyContent="center"
                     >
-                        Effortlessly copy & paste between devices
-                    </Text>
-                </Flex>
+                        {!code ? <CreateSection onJoin={onJoin} /> : <InfoSection code={code} onChange={onChange} onDelete={onDelete} />}
+                    </Flex>
 
-                <Flex
-                    marginBottom="8"
-                    justifyContent="center"
+                    <Container maxWidth={{ base: "100%", md: "50%" }}>
+                        {code && (
+                            <MainSection
+                                code={code}
+                                items={items}
+                                encrypted={encrypted}
+                                encryptionKey={encryptionKey}
+                                onEncrypt={onEncrypt}
+                                onAddItem={onAddItem}
+                                onDeleteItem={onDeleteItem}
+                            />
+                        )}
+                    </Container>
+                    <Container maxWidth={{ base: "100%", md: "70%" }}>
+                        {!code && <HowItWorks />}
+                    </Container>
+                </Box>
+
+                <Box
+                    paddingTop="auto"
                 >
-                    {!code ? <CreateSection onJoin={onJoin} /> : <InfoSection code={code} onChange={onChange} onDelete={onDelete} />}
-                </Flex>
+                    <Flex
+                        bgColor="#e6e6e6"
+                        paddingX="4"
+                        paddingY="2"
+                        justifyContent="space-between"
+                    >
+                        <Text>Created by <a style={{ color: "blue" }} href="https://glitch.je">Luke</a></Text>
+                        <Text>Source code on <a style={{ color: "blue" }} href="https://github.com/glitchjsy/clip">GitHub</a></Text>
+                    </Flex>
 
-                <Container maxWidth={{ base: "100%", md: "50%" }}>
-                    {code && (
-                        <MainSection
-                            code={code}
-                            items={items}
-                            encrypted={encrypted}
-                            encryptionKey={encryptionKey}
-                            onEncrypt={onEncrypt}
-                            onAddItem={onAddItem}
-                            onDeleteItem={onDeleteItem}
-                        />
-                    )}
-                </Container>
-                <Container maxWidth={{ base: "100%", md: "70%" }}>
-                    {!code && <HowItWorks />}
-                </Container>
-            </Box>
+                    <GlitchNavbar />
+                </Box>
+            </Flex>
 
             <ToastContainer />
         </ChakraProvider>
