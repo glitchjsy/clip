@@ -1,4 +1,5 @@
 # Clip
+[![Hits](https://hitcount.dev/p/lukeeey/clip.svg)](https://hitcount.dev/p/lukeeey/clip)  
 Effortlessly copy & paste between devices.
 
 ### How it works
